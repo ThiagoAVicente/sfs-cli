@@ -1,6 +1,6 @@
 # sfs-cli
 
-Command-line interface for [Semantic File Search (SFS)](https://github.com/vcnt/sfs-api).
+Command-line interface for [Semantic File Search (SFS)](https://github.com/ThiagoAVicente/sfs-api).
 
 Upload, search, and manage files using semantic search powered by vector embeddings.
 
@@ -20,13 +20,13 @@ Upload, search, and manage files using semantic search powered by vector embeddi
 ### From Source
 
 ```bash
-go install github.com/vcnt/sfs-cli@latest
+go install github.com/ThiagoAVicente/sfs-cli@latest
 ```
 
 ### Build from Repository
 
 ```bash
-git clone https://github.com/vcnt/sfs-cli.git
+git clone https://github.com/ThiagoAVicente/sfs-cli.git
 cd sfs-cli
 go build -o sfs
 sudo mv sfs /usr/local/bin/
@@ -161,5 +161,5 @@ See [LICENSE](LICENSE) file.
 
 ## Related Projects
 
-- [sfs-api](https://github.com/vcnt/sfs-api) - Backend API server
-- [sfs-desktop](https://github.com/vcnt/sfs-desktop) - Desktop GUI client
+- [sfs-api](https://github.com/ThiagoAVicente/sfs-api) - Backend API server
+- [sfs-desktop](https://github.com/ThiagoAVicente/sfs-desktop) - Desktop GUI client
