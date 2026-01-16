@@ -1,10 +1,10 @@
 /*
 Copyright © 2026 T. Vicente <thiagoaureliovicente@gmail.com>
-
 */
 package daemon
 
 import (
+	"io/fs"
 	"log"
 	"os"
 	"os/signal"
@@ -12,28 +12,66 @@ import (
 	"syscall"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/vcnt/sfs-cli/internal/api"
 	"github.com/vcnt/sfs-cli/internal/config"
 )
+
+func ensure(err error, msg string, stopOnErr bool) {
+	if err != nil {
+		log.Printf("%s: %v", msg, err)
+		if stopOnErr {
+			os.Exit(1)
+		}
+	}
+}
+
+// receives a list of directories/files and adds to watcher
+func create_watcher(dirs []string) *fsnotify.Watcher {
+	fileWatcher, err := fsnotify.NewWatcher()
+	ensure(err, "Failed to create file watcher", true)
+
+	for _, dir := range dirs {
+		// Convert to absolute path
+		absDir, err := filepath.Abs(dir)
+		if err != nil {
+			log.Printf("Warning: Could not resolve path %s: %v", dir, err)
+			continue
+		}
+
+		// Walk recursively to add all subdirectories
+		filepath.WalkDir(absDir, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				log.Printf("Error walking %s: %v", path, err)
+				return nil
+			}
+			if d.IsDir() {
+				if err := fileWatcher.Add(path); err != nil {
+					log.Printf("Warning: Could not watch %s: %v", path, err)
+				} else {
+					log.Printf("Watching: %s", path)
+				}
+			}
+			return nil
+		})
+	}
+	return fileWatcher
+}
 
 func Run() error {
 	log.Println("SFS daemon starting...")
 
 	// Create config watcher
 	configWatcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		return err
-	}
+	ensure(err, "Failed to create config watcher", true)
 	defer configWatcher.Close()
 
 	// Get config directory and file path
 	configDir, err := config.GetConfigDir()
-	if err != nil {
-		return err
-	}
+	ensure(err, "Failed to get config directory", true)
+
 	configPath, err := config.GetConfigPath()
-	if err != nil {
-		return err
-	}
+	ensure(err, "Failed to get config path", true)
+
 	configFileName := filepath.Base(configPath)
 
 	// Create config directory if it doesn't exist
@@ -58,7 +96,9 @@ func Run() error {
 		log.Printf("Warning: Failed to load config: %v", err)
 	}
 
-	// TODO: Initialize file watcher here (you'll implement this)
+	// crearte file watcher
+	fileWatcher := create_watcher(config.GetWatchDirs())
+	defer fileWatcher.Close()
 
 	log.Println("Daemon is running. Press Ctrl+C to stop.")
 
@@ -83,9 +123,39 @@ func Run() error {
 					log.Printf("Error reloading config: %v", err)
 				} else {
 					log.Println("Config reloaded successfully")
-					// TODO: Update file watcher with new watched directories
+					fileWatcher.Close()
+					fileWatcher = create_watcher(config.GetWatchDirs())
 				}
 			}
+
+		case event, ok := <-fileWatcher.Events:
+			if !ok {
+				return nil
+			}
+
+			// Handle file changes
+			if event.Has(fsnotify.Write) || event.Has(fsnotify.Create) {
+				log.Printf("File changed: %s", event.Name)
+
+				// send file to backend
+				cli, err := api.NewClient()
+				if err != nil {
+					log.Printf("Failed to create client: %v", err)
+					continue
+				}
+
+				if _, err := cli.UploadFile(event.Name, true); err != nil {
+					log.Printf("Failed to upload file %s: %v", event.Name, err)
+				} else {
+					log.Printf("Uploaded file: %s", event.Name)
+				}
+			}
+
+		case err, ok := <-fileWatcher.Errors:
+			if !ok {
+				return nil
+			}
+			log.Printf("File watcher error: %v", err)
 
 		case err, ok := <-configWatcher.Errors:
 			if !ok {
