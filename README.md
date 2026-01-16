@@ -118,5 +118,5 @@ See [LICENSE](LICENSE) file.
 
 ## Related Projects
 
-- [sfs-api](https://github.com/vcnt/sfs-api) - Backend API server
-- [sfs-desktop](https://github.com/vcnt/sfs-desktop) - Desktop GUI client
+- [sfs-api](https://github.com/ThiagoAVicente/sfs-api) - Backend API server
+- [sfs-desktop](https://github.com/ThiagoAVicente/sfs-desktop) - Desktop GUI client
