@@ -21,7 +21,7 @@ var rootCmd = &cobra.Command{
 Use it to upload files, search semantically, manage indexed files, and more.
 
 Configuration:
-  Config file: ~/.sfs-cli.yaml
+  Config file: ~/.config/sfs/config.yaml
 
   Required settings:
     api_url - Base URL of your SFS API

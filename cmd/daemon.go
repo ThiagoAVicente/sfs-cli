@@ -12,6 +12,7 @@ import (
 	"runtime"
 
 	"github.com/spf13/cobra"
+	"github.com/vcnt/sfs-cli/internal/daemon"
 )
 
 // daemonCmd represents the daemon command
@@ -253,8 +254,6 @@ var daemonStatusCmd = &cobra.Command{
 		}
 
 		if err := runSystemctl("status", serviceName); err != nil {
-			// systemctl status returns non-zero if service is not running
-			// but we still want to show the output, so we don't exit here
 			os.Exit(1)
 		}
 	},
@@ -265,13 +264,10 @@ var daemonRunCmd = &cobra.Command{
 	Short: "Run the daemon (used by systemd)",
 	Long:  `This command is called by systemd to run the daemon. Do not call this directly.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// This is where the daemon's main logic will run
-		// For now, it's a placeholder for the watch functionality
-		fmt.Println("SFS daemon starting...")
-
-		// TODO: Implement the actual daemon logic here
-		// This should run continuously until stopped
-		select {}
+		if err := daemon.Run(); err != nil {
+			fmt.Fprintf(os.Stderr, "Daemon error: %v\n", err)
+			os.Exit(1)
+		}
 	},
 }
 

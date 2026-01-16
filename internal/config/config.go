@@ -9,14 +9,16 @@ import (
 )
 
 const (
-	ConfigFileName = ".sfs-cli"
+	ConfigFileName = "config"
 	ConfigFileType = "yaml"
+	ConfigDirName  = ".config/sfs"
 )
 
 // Config holds the application configuration
 type Config struct {
-	APIURL string `mapstructure:"api_url"`
-	APIKey string `mapstructure:"api_key"`
+	APIURL         string   `mapstructure:"api_url"`
+	APIKey         string   `mapstructure:"api_key"`
+	WatchDirs      []string `mapstructure:"watch_dirs"`
 }
 
 // InitConfig initializes viper configuration
@@ -26,14 +28,17 @@ func InitConfig() error {
 		return fmt.Errorf("failed to get home directory: %w", err)
 	}
 
+	configDir := filepath.Join(home, ConfigDirName)
+
 	// Set config file location
-	viper.AddConfigPath(home)
+	viper.AddConfigPath(configDir)
 	viper.SetConfigName(ConfigFileName)
 	viper.SetConfigType(ConfigFileType)
 
 	// Set defaults
 	viper.SetDefault("api_url", "https://localhost")
 	viper.SetDefault("api_key", "")
+	viper.SetDefault("watch_dirs", []string{})
 
 	// Read config file
 	if err := viper.ReadInConfig(); err != nil {
@@ -73,7 +78,13 @@ func Save() error {
 		return fmt.Errorf("failed to get home directory: %w", err)
 	}
 
-	configPath := filepath.Join(home, ConfigFileName+"."+ConfigFileType)
+	configDir := filepath.Join(home, ConfigDirName)
+	configPath := filepath.Join(configDir, ConfigFileName+"."+ConfigFileType)
+
+	// Create config directory if it doesn't exist
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		return fmt.Errorf("failed to create config directory: %w", err)
+	}
 
 	// Use WriteConfigAs which handles both create and update
 	if err := viper.WriteConfigAs(configPath); err != nil {
@@ -91,4 +102,27 @@ func Save() error {
 // GetAll returns all configuration as a map
 func GetAll() map[string]interface{} {
 	return viper.AllSettings()
+}
+
+// GetWatchDirs returns the list of directories to watch
+func GetWatchDirs() []string {
+	return viper.GetStringSlice("watch_dirs")
+}
+
+// GetConfigDir returns the configuration directory path
+func GetConfigDir() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("failed to get home directory: %w", err)
+	}
+	return filepath.Join(home, ConfigDirName), nil
+}
+
+// GetConfigPath returns the full config file path
+func GetConfigPath() (string, error) {
+	configDir, err := GetConfigDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(configDir, ConfigFileName+"."+ConfigFileType), nil
 }
