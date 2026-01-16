@@ -3,6 +3,7 @@ package daemon
 import (
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 )
@@ -65,7 +66,8 @@ func TestDebounceTimers(t *testing.T) {
 	debounceMutex.Unlock()
 
 	testFile := "/tmp/test.txt"
-	uploadCount := 0
+	var uploadCount int
+	var countMutex sync.Mutex
 
 	// Simulate multiple rapid events
 	for i := 0; i < 5; i++ {
@@ -75,7 +77,9 @@ func TestDebounceTimers(t *testing.T) {
 		}
 
 		debounceTimers[testFile] = time.AfterFunc(50*time.Millisecond, func() {
+			countMutex.Lock()
 			uploadCount++
+			countMutex.Unlock()
 		})
 		debounceMutex.Unlock()
 
@@ -86,8 +90,12 @@ func TestDebounceTimers(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// Should only upload once
-	if uploadCount != 1 {
-		t.Errorf("Expected 1 upload, got %d", uploadCount)
+	countMutex.Lock()
+	count := uploadCount
+	countMutex.Unlock()
+
+	if count != 1 {
+		t.Errorf("Expected 1 upload, got %d", count)
 	}
 }
 
