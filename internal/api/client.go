@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/vcnt/sfs-cli/internal/config"
@@ -101,14 +100,6 @@ func (c *Client) UploadFile(filePath string, update bool) (*UploadResponse, erro
 		return nil, fmt.Errorf("failed to access file: %w", err)
 	}
 
-	// Convert file path to file name (replace / with _)
-	// Remove leading / or \ and replace all path separators with _
-	fileName := absPath
-	if len(fileName) > 0 && (fileName[0] == '/' || fileName[0] == '\\') {
-		fileName = fileName[1:]
-	}
-	fileName = replacePathSeparators(fileName)
-
 	resp, err := c.client.R().
 		SetFile("file", absPath).
 		SetFormData(map[string]string{
@@ -126,7 +117,7 @@ func (c *Client) UploadFile(filePath string, update bool) (*UploadResponse, erro
 	}
 
 	result := resp.Result().(*UploadResponse)
-	fmt.Printf("File uploaded: %s -> %s\n", absPath, fileName)
+	fmt.Printf("File uploaded: %s\n", absPath)
 	fmt.Printf("Job ID: %s\n", result.JobID)
 
 	return result, nil
@@ -240,11 +231,4 @@ func (c *Client) GetJobStatus(jobID string) (*JobStatusResponse, error) {
 	}
 
 	return resp.Result().(*JobStatusResponse), nil
-}
-
-// replacePathSeparators replaces all path separators (/ and \) with underscores
-func replacePathSeparators(path string) string {
-	path = strings.ReplaceAll(path, "/", "_")
-	path = strings.ReplaceAll(path, "\\", "_")
-	return path
 }

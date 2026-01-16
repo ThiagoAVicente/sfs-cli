@@ -12,6 +12,7 @@ Upload, search, and manage files using semantic search powered by vector embeddi
 - **Delete** - Remove files from the index
 - **Download** - Retrieve stored files
 - **Config** - Manage API connection settings
+- **Daemon** - Background service for automatic file watching
 - **Watch** - Auto-sync folders
 
 ## Installation
@@ -89,13 +90,40 @@ sfs download document.pdf ./my-doc.pdf
 sfs delete document.pdf
 ```
 
+### 6. Daemon Management
+
+The daemon runs in the background to enable automatic file watching.
+
+```bash
+# Enable daemon to start automatically on boot
+sfs daemon enable
+
+# Disable automatic startup
+sfs daemon disable
+
+# Manually start the daemon
+sfs daemon start
+
+# Stop the daemon
+sfs daemon stop
+
+# Restart the daemon
+sfs daemon restart
+
+# Check daemon status
+sfs daemon status
+```
+
 ## Configuration File
 
-Configuration is stored in `~/.sfs-cli.yaml`:
+Configuration is stored in `~/.config/sfs/config.yaml`:
 
 ```yaml
 api_url: https://your-api.com
 api_key: your-secret-key
+watch_dirs:
+  - /home/user/documents
+  - /home/user/projects
 ```
 
 ## Development
@@ -118,5 +146,5 @@ See [LICENSE](LICENSE) file.
 
 ## Related Projects
 
-- [sfs-api](https://github.com/ThiagoAVicente/sfs-api) - Backend API server
-- [sfs-desktop](https://github.com/ThiagoAVicente/sfs-desktop) - Desktop GUI client
+- [sfs-api](https://github.com/vcnt/sfs-api) - Backend API server
+- [sfs-desktop](https://github.com/vcnt/sfs-desktop) - Desktop GUI client
