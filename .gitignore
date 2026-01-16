@@ -5,6 +5,10 @@ sfs
 *.test
 *.out
 
+# Coverage reports
+coverage.txt
+*.coverprofile
+
 # Go workspace file
 go.work
 go.work.sum
