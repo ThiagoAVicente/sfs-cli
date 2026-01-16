@@ -12,7 +12,7 @@ import (
 	"runtime"
 
 	"github.com/spf13/cobra"
-	"github.com/vcnt/sfs-cli/internal/daemon"
+	"github.com/ThiagoAVicente/sfs-cli/internal/daemon"
 )
 
 // daemonCmd represents the daemon command

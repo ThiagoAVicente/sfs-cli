@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/vcnt/sfs-cli/internal/config"
+	"github.com/ThiagoAVicente/sfs-cli/internal/config"
 )
 
 // rootCmd represents the base command when called without any subcommands

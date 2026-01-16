@@ -12,7 +12,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/vcnt/sfs-cli/internal/config"
+	"github.com/ThiagoAVicente/sfs-cli/internal/config"
 )
 
 // watchCmd represents the watch command

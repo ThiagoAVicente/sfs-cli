@@ -1,4 +1,4 @@
-module github.com/vcnt/sfs-cli
+module github.com/ThiagoAVicente/sfs-cli
 
 go 1.25.5
 

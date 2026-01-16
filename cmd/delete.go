@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/vcnt/sfs-cli/internal/api"
+	"github.com/ThiagoAVicente/sfs-cli/internal/api"
 )
 
 // deleteCmd represents the delete command

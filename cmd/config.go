@@ -9,7 +9,7 @@ import (
 	"syscall"
 
 	"github.com/spf13/cobra"
-	"github.com/vcnt/sfs-cli/internal/config"
+	"github.com/ThiagoAVicente/sfs-cli/internal/config"
 	"golang.org/x/term"
 )
 
