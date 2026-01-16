@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -69,7 +70,11 @@ func NewClient() (*Client, error) {
 	}
 
 	// Only skip cert validation for localhost
-	isLocalhost := strings.Contains(cfg.APIURL, "://localhost") || strings.Contains(cfg.APIURL, "://127.0.0.1")
+	isLocalhost := false
+	if parsedURL, err := url.Parse(cfg.APIURL); err == nil {
+		hostname := parsedURL.Hostname()
+		isLocalhost = hostname == "localhost" || hostname == "127.0.0.1"
+	}
 
 	client := resty.New().
 		SetBaseURL(cfg.APIURL).
@@ -91,11 +96,10 @@ func (c *Client) UploadFile(filePath string, update bool) (*UploadResponse, erro
 		return nil, fmt.Errorf("failed to get absolute path: %w", err)
 	}
 
-	file, err := os.Open(absPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open file: %w", err)
+	// Validate file exists and is readable
+	if _, err := os.Stat(absPath); err != nil {
+		return nil, fmt.Errorf("failed to access file: %w", err)
 	}
-	defer file.Close()
 
 	// Convert file path to file name (replace / with _)
 	// Remove leading / or \ and replace all path separators with _
@@ -177,7 +181,7 @@ func (c *Client) ListFiles(prefix string) (*ListFilesResponse, error) {
 func (c *Client) DeleteFile(fileName string) (*DeleteResponse, error) {
 	resp, err := c.client.R().
 		SetResult(&DeleteResponse{}).
-		Delete("/index/" + fileName)
+		Delete("/index/" + url.PathEscape(fileName))
 
 	if err != nil {
 		return nil, fmt.Errorf("delete failed: %w", err)
@@ -194,7 +198,7 @@ func (c *Client) DeleteFile(fileName string) (*DeleteResponse, error) {
 func (c *Client) DownloadFile(fileName, destPath string) error {
 	resp, err := c.client.R().
 		SetDoNotParseResponse(true).
-		Get("/files/" + fileName)
+		Get("/files/" + url.PathEscape(fileName))
 
 	if err != nil {
 		return fmt.Errorf("download failed: %w", err)
@@ -225,7 +229,7 @@ func (c *Client) DownloadFile(fileName, destPath string) error {
 func (c *Client) GetJobStatus(jobID string) (*JobStatusResponse, error) {
 	resp, err := c.client.R().
 		SetResult(&JobStatusResponse{}).
-		Get("/index/status/" + jobID)
+		Get("/index/status/" + url.PathEscape(jobID))
 
 	if err != nil {
 		return nil, fmt.Errorf("status check failed: %w", err)

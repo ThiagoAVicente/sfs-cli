@@ -1,6 +1,7 @@
 package api
 
 import (
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -346,8 +347,13 @@ func TestCertificateValidationForLocalhost(t *testing.T) {
 				t.Fatalf("Failed to create client: %v", err)
 			}
 
-			// Check TLS config
-			isLocalhost := strings.Contains(tt.apiURL, "://localhost") || strings.Contains(tt.apiURL, "://127.0.0.1")
+			// Check TLS config using proper URL parsing
+			isLocalhost := false
+			if parsedURL, err := url.Parse(tt.apiURL); err == nil {
+				hostname := parsedURL.Hostname()
+				isLocalhost = hostname == "localhost" || hostname == "127.0.0.1"
+			}
+
 			if isLocalhost != tt.shouldSkipValidate {
 				t.Errorf("Expected shouldSkipValidate=%v for URL %s, but got %v", tt.shouldSkipValidate, tt.apiURL, isLocalhost)
 			}

@@ -1,1 +1,25 @@
+# Binary
 sfs
+
+# Test binaries
+*.test
+*.out
+
+# Go workspace file
+go.work
+go.work.sum
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Runtime files
+.sfs-daemon.pid
+.sfs-cli.yaml

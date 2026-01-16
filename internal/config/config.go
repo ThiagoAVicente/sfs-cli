@@ -75,11 +75,9 @@ func Save() error {
 
 	configPath := filepath.Join(home, ConfigFileName+"."+ConfigFileType)
 
+	// Use WriteConfigAs which handles both create and update
 	if err := viper.WriteConfigAs(configPath); err != nil {
-		// If file doesn't exist, SafeWriteConfig creates it
-		if err := viper.SafeWriteConfig(); err != nil {
-			return fmt.Errorf("failed to write config: %w", err)
-		}
+		return fmt.Errorf("failed to write config: %w", err)
 	}
 
 	// Set secure permissions (owner read/write only)
