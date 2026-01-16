@@ -248,49 +248,6 @@ func TestGetJobStatus(t *testing.T) {
 	}
 }
 
-func TestReplacePathSeparators(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		expected string
-	}{
-		{
-			name:     "unix path",
-			input:    "home/user/documents/file.txt",
-			expected: "home_user_documents_file.txt",
-		},
-		{
-			name:     "windows path",
-			input:    "C:\\Users\\Documents\\file.txt",
-			expected: "C:_Users_Documents_file.txt",
-		},
-		{
-			name:     "mixed separators",
-			input:    "home/user\\documents/file.txt",
-			expected: "home_user_documents_file.txt",
-		},
-		{
-			name:     "no separators",
-			input:    "file.txt",
-			expected: "file.txt",
-		},
-		{
-			name:     "multiple consecutive separators",
-			input:    "home//user///file.txt",
-			expected: "home__user___file.txt",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := replacePathSeparators(tt.input)
-			if result != tt.expected {
-				t.Errorf("replacePathSeparators(%q) = %q, want %q", tt.input, result, tt.expected)
-			}
-		})
-	}
-}
-
 func TestCertificateValidationForLocalhost(t *testing.T) {
 	// Reset viper to avoid state leakage between tests
 	viper.Reset()

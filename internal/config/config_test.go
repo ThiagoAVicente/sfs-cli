@@ -33,7 +33,7 @@ func TestSetAndGet(t *testing.T) {
 	}
 
 	// Verify file was created
-	configFile := filepath.Join(tmpDir, ConfigFileName+"."+ConfigFileType)
+	configFile := filepath.Join(tmpDir, ConfigDirName, ConfigFileName+"."+ConfigFileType)
 	if _, err := os.Stat(configFile); os.IsNotExist(err) {
 		t.Error("Config file was not created")
 	}
@@ -112,7 +112,7 @@ func TestConfigFilePermissions(t *testing.T) {
 	}
 
 	// Check file permissions
-	configFile := filepath.Join(tmpDir, ConfigFileName+"."+ConfigFileType)
+	configFile := filepath.Join(tmpDir, ConfigDirName, ConfigFileName+"."+ConfigFileType)
 	info, err := os.Stat(configFile)
 	if err != nil {
 		t.Fatalf("Failed to stat config file: %v", err)
