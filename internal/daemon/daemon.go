@@ -9,11 +9,21 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
+	"sync"
 	"syscall"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/vcnt/sfs-cli/internal/api"
 	"github.com/vcnt/sfs-cli/internal/config"
+)
+
+const debounceDelay = 500 * time.Millisecond
+
+var (
+	debounceTimers   = make(map[string]*time.Timer)
+	debounceMutex    sync.Mutex
 )
 
 func ensure(err error, msg string, stopOnErr bool) {
@@ -134,21 +144,45 @@ func Run() error {
 			}
 
 			// Handle file changes
-			if event.Has(fsnotify.Write) || event.Has(fsnotify.Create) {
-				log.Printf("File changed: %s", event.Name)
-
-				// send file to backend
-				cli, err := api.NewClient()
-				if err != nil {
-					log.Printf("Failed to create client: %v", err)
+			if event.Has(fsnotify.Write) {
+				// Skip backup/temp files
+				if strings.HasSuffix(event.Name, "~") || strings.HasSuffix(event.Name, ".swp") {
 					continue
 				}
 
-				if _, err := cli.UploadFile(event.Name, true); err != nil {
-					log.Printf("Failed to upload file %s: %v", event.Name, err)
-				} else {
-					log.Printf("Uploaded file: %s", event.Name)
+				// Skip directories
+				if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
+					continue
 				}
+
+				log.Printf("File changed: %s (debouncing...)", event.Name)
+
+				// Debounce: cancel existing timer and set new one
+				debounceMutex.Lock()
+				if timer, exists := debounceTimers[event.Name]; exists {
+					timer.Stop()
+				}
+
+				debounceTimers[event.Name] = time.AfterFunc(debounceDelay, func() {
+					// Upload the file after delay
+					cli, err := api.NewClient()
+					if err != nil {
+						log.Printf("Failed to create client: %v", err)
+						return
+					}
+
+					if _, err := cli.UploadFile(event.Name, true); err != nil {
+						log.Printf("Failed to upload file %s: %v", event.Name, err)
+					} else {
+						log.Printf("Uploaded file: %s", event.Name)
+					}
+
+					// Clean up timer
+					debounceMutex.Lock()
+					delete(debounceTimers, event.Name)
+					debounceMutex.Unlock()
+				})
+				debounceMutex.Unlock()
 			}
 
 		case err, ok := <-fileWatcher.Errors:
