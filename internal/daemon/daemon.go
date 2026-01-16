@@ -35,8 +35,8 @@ func ensure(err error, msg string, stopOnErr bool) {
 	}
 }
 
-// receives a list of directories/files and adds to watcher
-func create_watcher(dirs []string) *fsnotify.Watcher {
+// createWatcher receives a list of directories/files and adds to watcher
+func createWatcher(dirs []string) *fsnotify.Watcher {
 	fileWatcher, err := fsnotify.NewWatcher()
 	ensure(err, "Failed to create file watcher", true)
 
@@ -106,8 +106,8 @@ func Run() error {
 		log.Printf("Warning: Failed to load config: %v", err)
 	}
 
-	// crearte file watcher
-	fileWatcher := create_watcher(config.GetWatchDirs())
+	// Create file watcher
+	fileWatcher := createWatcher(config.GetWatchDirs())
 	defer fileWatcher.Close()
 
 	log.Println("Daemon is running. Press Ctrl+C to stop.")
@@ -134,13 +134,26 @@ func Run() error {
 				} else {
 					log.Println("Config reloaded successfully")
 					fileWatcher.Close()
-					fileWatcher = create_watcher(config.GetWatchDirs())
+					fileWatcher = createWatcher(config.GetWatchDirs())
 				}
 			}
 
 		case event, ok := <-fileWatcher.Events:
 			if !ok {
 				return nil
+			}
+
+			// Handle new directory creation
+			if event.Has(fsnotify.Create) {
+				if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
+					// Add new directory to watcher
+					if err := fileWatcher.Add(event.Name); err != nil {
+						log.Printf("Warning: Could not watch new directory %s: %v", event.Name, err)
+					} else {
+						log.Printf("Now watching new directory: %s", event.Name)
+					}
+					continue
+				}
 			}
 
 			// Handle file changes

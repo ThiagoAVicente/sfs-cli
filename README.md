@@ -116,11 +116,14 @@ sfs daemon status
 
 ## Configuration File
 
-Configuration is stored in `~/.sfs-cli.yaml`:
+Configuration is stored in `~/.config/sfs/config.yaml`:
 
 ```yaml
 api_url: https://your-api.com
 api_key: your-secret-key
+watch_dirs:
+  - /home/user/documents
+  - /home/user/projects
 ```
 
 ## Development
