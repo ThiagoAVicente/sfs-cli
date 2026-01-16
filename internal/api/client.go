@@ -68,11 +68,14 @@ func NewClient() (*Client, error) {
 		return nil, fmt.Errorf("API key not configured. Run: sfs config set api_key <your-key>")
 	}
 
+	// Only skip cert validation for localhost
+	isLocalhost := strings.Contains(cfg.APIURL, "://localhost") || strings.Contains(cfg.APIURL, "://127.0.0.1")
+
 	client := resty.New().
 		SetBaseURL(cfg.APIURL).
 		SetHeader("X-API-Key", cfg.APIKey).
 		SetHeader("Content-Type", "application/json").
-		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: isLocalhost})
 
 	return &Client{
 		client: client,

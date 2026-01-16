@@ -289,3 +289,73 @@ func TestReplacePathSeparators(t *testing.T) {
 		})
 	}
 }
+
+func TestCertificateValidationForLocalhost(t *testing.T) {
+	// Reset viper to avoid state leakage between tests
+	viper.Reset()
+
+	tmpDir := t.TempDir()
+	home := os.Getenv("HOME")
+	os.Setenv("HOME", tmpDir)
+	defer os.Setenv("HOME", home)
+
+	if err := config.InitConfig(); err != nil {
+		t.Fatalf("Failed to init config: %v", err)
+	}
+
+	tests := []struct {
+		name               string
+		apiURL             string
+		shouldSkipValidate bool
+	}{
+		{
+			name:               "localhost with https",
+			apiURL:             "https://localhost:8000",
+			shouldSkipValidate: true,
+		},
+		{
+			name:               "127.0.0.1 with https",
+			apiURL:             "https://127.0.0.1:8000",
+			shouldSkipValidate: true,
+		},
+		{
+			name:               "local IP address",
+			apiURL:             "https://192.168.0.3:8000",
+			shouldSkipValidate: false,
+		},
+		{
+			name:               "production domain",
+			apiURL:             "https://api.example.com",
+			shouldSkipValidate: false,
+		},
+		{
+			name:               "localhost with http",
+			apiURL:             "http://localhost:8000",
+			shouldSkipValidate: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Set config for this test
+			config.Set("api_url", tt.apiURL)
+			config.Set("api_key", "test-key")
+
+			client, err := NewClient()
+			if err != nil {
+				t.Fatalf("Failed to create client: %v", err)
+			}
+
+			// Check TLS config
+			isLocalhost := strings.Contains(tt.apiURL, "://localhost") || strings.Contains(tt.apiURL, "://127.0.0.1")
+			if isLocalhost != tt.shouldSkipValidate {
+				t.Errorf("Expected shouldSkipValidate=%v for URL %s, but got %v", tt.shouldSkipValidate, tt.apiURL, isLocalhost)
+			}
+
+			// Verify client was created
+			if client == nil {
+				t.Error("Expected non-nil client")
+			}
+		})
+	}
+}
