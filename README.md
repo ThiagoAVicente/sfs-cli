@@ -114,6 +114,21 @@ sfs daemon restart
 sfs daemon status
 ```
 
+### 7. Watch Directory
+
+Update directory on change
+
+```bash
+# Add directory to watch list
+sfs watch add <directory>
+
+# Remove directory from watch list
+sfs watch remove <directory>
+
+# List watched directories
+sfs watch list
+```
+
 ## Configuration File
 
 Configuration is stored in `~/.config/sfs/config.yaml`:
