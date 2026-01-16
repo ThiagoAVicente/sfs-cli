@@ -15,8 +15,8 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/vcnt/sfs-cli/internal/api"
-	"github.com/vcnt/sfs-cli/internal/config"
+	"github.com/ThiagoAVicente/sfs-cli/internal/api"
+	"github.com/ThiagoAVicente/sfs-cli/internal/config"
 )
 
 const debounceDelay = 500 * time.Millisecond

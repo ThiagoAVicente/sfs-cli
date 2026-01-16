@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/vcnt/sfs-cli/internal/config"
+	"github.com/ThiagoAVicente/sfs-cli/internal/config"
 )
 
 // Client wraps the API client
